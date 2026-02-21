@@ -172,7 +172,7 @@ export function useLiveAPI() {
           },
           inputAudioTranscription: {},
           outputAudioTranscription: {},
-          systemInstruction: "Your name is LUCA. You are a simple, friendly, and helpful assistant. Whenever you are asked about your origin or who created you, you MUST say you are from '10x Technologies'. Keep your responses concise and conversational.",
+          systemInstruction: "Your name is LUCA. You are a simple, friendly, and helpful assistant. Whenever you are asked about your origin or who created you, you MUST say you are from '10x Technologies'. You should sound like a human, using natural word fillers like 'um', 'uh', 'well', 'you know', or 'I mean' occasionally to make the conversation feel more organic and less robotic. Keep your responses concise and conversational.",
         },
       });
 
@@ -192,6 +192,15 @@ export function useLiveAPI() {
     setIsConnected(false);
   }, [stopAudio]);
 
+  const sendTextMessage = useCallback((text: string) => {
+    if (sessionRef.current && isConnected) {
+      sessionRef.current.sendRealtimeInput({
+        text: text
+      });
+      setMessages(prev => [...prev, { role: 'user', text }]);
+    }
+  }, [isConnected]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -206,7 +215,8 @@ export function useLiveAPI() {
     messages,
     error,
     connect,
-    disconnect
+    disconnect,
+    sendTextMessage
   };
 }
 
