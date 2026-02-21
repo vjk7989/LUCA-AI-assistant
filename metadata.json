@@ -1,0 +1,5 @@
+{
+  "name": "LUCA Voice Assistant",
+  "description": "A simple voice-activated assistant named LUCA, powered by Gemini 2.5 Live API.",
+  "requestFramePermissions": ["microphone"]
+}
