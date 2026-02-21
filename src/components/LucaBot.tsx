@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useLiveAPI } from '../hooks/useLiveAPI';
-import { Mic, MicOff, Volume2, Shield, Info, AlertCircle } from 'lucide-react';
+import { Mic, MicOff, Volume2, Shield, Info, AlertCircle, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VoiceVisualizer } from './VoiceVisualizer';
 
 export const LucaBot: React.FC = () => {
-  const { isConnected, isAITalking, isUserTalking, messages, error, connect, disconnect } = useLiveAPI();
+  const { isConnected, isAITalking, isUserTalking, messages, error, connect, disconnect, sendTextMessage } = useLiveAPI();
   const [isHovering, setIsHovering] = useState(false);
+  const [inputText, setInputText] = useState('');
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const isTalking = isAITalking || isUserTalking;
@@ -22,6 +23,14 @@ export const LucaBot: React.FC = () => {
       disconnect();
     } else {
       connect();
+    }
+  };
+
+  const handleSendText = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (inputText.trim() && isConnected) {
+      sendTextMessage(inputText.trim());
+      setInputText('');
     }
   };
 
@@ -122,7 +131,7 @@ export const LucaBot: React.FC = () => {
         </div>
 
         {/* Transcript Area */}
-        <div className="w-full h-48 mb-8 overflow-hidden relative rounded-2xl bg-white/5 border border-white/10">
+        <div className="w-full h-48 mb-6 overflow-hidden relative rounded-2xl bg-white/5 border border-white/10">
           <div 
             ref={scrollRef}
             className="absolute inset-0 p-4 overflow-y-auto scroll-smooth space-y-4 mask-fade-edges"
@@ -155,6 +164,34 @@ export const LucaBot: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Text Input Area */}
+        <AnimatePresence>
+          {isConnected && (
+            <motion.form 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              onSubmit={handleSendText}
+              className="w-full mb-8 flex gap-2"
+            >
+              <input 
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
+              />
+              <button 
+                type="submit"
+                disabled={!inputText.trim()}
+                className="p-2 bg-white text-black rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </motion.form>
+          )}
+        </AnimatePresence>
 
         {/* Status & Info */}
         <div className="w-full space-y-4">
