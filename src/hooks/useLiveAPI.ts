@@ -21,6 +21,7 @@ export function useLiveAPI() {
   const [isConnected, setIsConnected] = useState(false);
   const [isAITalking, setIsAITalking] = useState(false);
   const [isUserTalking, setIsUserTalking] = useState(false);
+  const [volume, setVolume] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
   
@@ -46,6 +47,7 @@ export function useLiveAPI() {
     }
     setIsAITalking(false);
     setIsUserTalking(false);
+    setVolume(0);
     nextStartTimeRef.current = 0;
   }, []);
 
@@ -82,10 +84,19 @@ export function useLiveAPI() {
                   sum += inputData[i] * inputData[i];
                 }
                 const rms = Math.sqrt(sum / inputData.length);
+                
+                // Update volume state for user
+                if (!isAITalking) {
+                  setVolume(rms);
+                }
+
                 if (rms > 0.01) { // Threshold for "talking"
                   setIsUserTalking(true);
                   if (userTalkingTimeoutRef.current) clearTimeout(userTalkingTimeoutRef.current);
-                  userTalkingTimeoutRef.current = setTimeout(() => setIsUserTalking(false), 500);
+                  userTalkingTimeoutRef.current = setTimeout(() => {
+                    setIsUserTalking(false);
+                    if (!isAITalking) setVolume(0);
+                  }, 500);
                 }
 
                 const pcmData = new Int16Array(inputData.length);
@@ -114,9 +125,14 @@ export function useLiveAPI() {
               }
               const pcmData = new Int16Array(bytes.buffer);
               const float32Data = new Float32Array(pcmData.length);
+              
+              let sum = 0;
               for (let i = 0; i < pcmData.length; i++) {
                 float32Data[i] = pcmData[i] / 32768.0;
+                sum += float32Data[i] * float32Data[i];
               }
+              const rms = Math.sqrt(sum / pcmData.length);
+              setVolume(rms);
 
               if (audioContextRef.current) {
                 const audioBuffer = audioContextRef.current.createBuffer(1, float32Data.length, 24000);
@@ -132,6 +148,7 @@ export function useLiveAPI() {
                 source.onended = () => {
                   if (audioContextRef.current && audioContextRef.current.currentTime >= nextStartTimeRef.current - 0.1) {
                     setIsAITalking(false);
+                    setVolume(0);
                   }
                 };
               }
@@ -141,6 +158,7 @@ export function useLiveAPI() {
             if (message.serverContent?.interrupted) {
               nextStartTimeRef.current = 0;
               setIsAITalking(false);
+              setVolume(0);
             }
             
             // Handle transcriptions
@@ -181,7 +199,7 @@ export function useLiveAPI() {
       console.error("Failed to connect:", err);
       setError("Could not access microphone or connect to API.");
     }
-  }, [stopAudio]);
+  }, [stopAudio, isAITalking]);
 
   const disconnect = useCallback(() => {
     if (sessionRef.current) {
@@ -212,6 +230,7 @@ export function useLiveAPI() {
     isConnected,
     isAITalking,
     isUserTalking,
+    volume,
     messages,
     error,
     connect,
