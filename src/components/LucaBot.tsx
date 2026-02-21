@@ -196,7 +196,7 @@ export const LucaBot: React.FC = () => {
 
         {/* Footer Hint */}
         <p className="mt-8 text-white/20 text-[10px] uppercase tracking-[0.3em] font-medium">
-          Powered by Gemini 2.5 Live
+          Powered by Buckleson
         </p>
       </motion.div>
     </div>
