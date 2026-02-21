@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { VoiceVisualizer } from './VoiceVisualizer';
 
 export const LucaBot: React.FC = () => {
-  const { isConnected, isAITalking, isUserTalking, messages, error, connect, disconnect, sendTextMessage } = useLiveAPI();
+  const { isConnected, isAITalking, isUserTalking, volume, messages, error, connect, disconnect, sendTextMessage } = useLiveAPI();
   const [isHovering, setIsHovering] = useState(false);
   const [inputText, setInputText] = useState('');
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -69,7 +69,7 @@ export const LucaBot: React.FC = () => {
 
         {/* Visualizer Area */}
         <div className="w-full mb-8">
-          <VoiceVisualizer isUserTalking={isUserTalking} isAITalking={isAITalking} />
+          <VoiceVisualizer isUserTalking={isUserTalking} isAITalking={isAITalking} volume={volume} />
         </div>
 
         {/* Main Visualizer / Button */}
